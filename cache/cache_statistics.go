@@ -1,6 +1,16 @@
 package cache
 
 type (
+
+	// StatsHandler
+	// @Description: 缓存组件上报
+	StatsHandler struct {
+		//  统计开关
+		disable bool
+		//  统计上报组件
+		handler Statistics
+	}
+
 	// Statistics
 	// @Description: 缓存命中率统计模块
 	Statistics interface {
