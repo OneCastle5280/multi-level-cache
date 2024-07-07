@@ -1,6 +1,4 @@
-package mlc
-
-import "mlc/cache"
+package cache
 
 type RemoteCache[T any] struct {
 	//
@@ -13,5 +11,5 @@ type RemoteCache[T any] struct {
 	//  cache
 	//  @Description: 远程缓存 cache
 	//
-	cache cache.Cache[T]
+	cache Cache[T]
 }

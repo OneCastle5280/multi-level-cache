@@ -1,6 +1,4 @@
-package mlc
-
-import "mlc/cache"
+package cache
 
 type LocalCache[T any] struct {
 	//
@@ -13,5 +11,5 @@ type LocalCache[T any] struct {
 	//  cache
 	//  @Description: 本地缓存 cache
 	//
-	cache cache.Cache[T]
+	cache Cache[T]
 }
