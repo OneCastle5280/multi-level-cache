@@ -6,10 +6,15 @@ type (
 	// @Description: 缓存自定义配置
 	//
 	Config struct {
-		localExpire    int  // local  缓存过期时间, 单位：秒
-		localLimitSize int  // local  缓存大小，默认为 512 KB
-		remoteExpire   int  // remote 缓存过期时间, 单位：秒
-		mode           Mode // 缓存模式
+		localExpire    int        // local  缓存过期时间, 单位：秒
+		localLimitSize int        // local  缓存大小，默认为 512 KB
+		remoteExpire   int        // remote 缓存过期时间, 单位：秒
+		statsDisable   bool       // 日志统计开关
+		statsHandler   Statistics // 自定义命中率统计
+		loader         Loader     // 回源接口
+		remoteCache    Cache      // 自定义远程缓存
+		localCache     Cache      // 自定义本地缓存
+		mode           Mode       // 缓存模式
 	}
 
 	ConfigOption func(option *Config)
@@ -31,4 +36,53 @@ func NewCacheConfig(options ...ConfigOption) *Config {
 	}
 
 	return config
+}
+
+// GetLocalExpire 获取 local 缓存超时时间
+func (c *Config) GetLocalExpire() int {
+	if c.localExpire <= 0 {
+		return defaultLocalExpire
+	}
+	return c.localExpire
+}
+
+// GetRemoteExpire 获取 remote 缓存超时时间
+func (c *Config) GetRemoteExpire() int {
+	if c.remoteExpire <= 0 {
+		return defaultRemoteExpire
+	}
+	return c.remoteExpire
+}
+
+// GetLocalLimitSize 获取本地缓存大小，默认 512 KB
+func (c *Config) GetLocalLimitSize() int {
+	if c.localLimitSize < defaultLocalCacheLimitSize {
+		return defaultLocalCacheLimitSize
+	}
+	return c.localLimitSize
+}
+
+// GetMode 获取缓存模式
+func (c *Config) GetMode() Mode {
+	return c.mode
+}
+
+// GetStatsDisable 获取日志统计功能开关
+func (c *Config) GetStatsDisable() bool {
+	return c.statsDisable
+}
+
+// GetLoader 获取回源接口
+func (c *Config) GetLoader() Loader {
+	return c.loader
+}
+
+// GetRemoteCache 获取自定义远程缓存
+func (c *Config) GetRemoteCache() Cache {
+	return c.remoteCache
+}
+
+// GetLocalCache 获取自定义本地缓存
+func (c *Config) GetLocalCache() Cache {
+	return c.localCache
 }

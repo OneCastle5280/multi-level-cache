@@ -17,5 +17,5 @@ type (
 	}
 
 	// Loader 回源 func
-	Loader[T any] func(ctx context.Context, keys []string) (map[string]*T, error)
+	Loader func(ctx context.Context, keys []string) (map[string][]byte, error)
 )

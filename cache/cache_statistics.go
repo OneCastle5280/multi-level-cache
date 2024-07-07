@@ -8,7 +8,12 @@ type (
 		//  统计开关
 		disable bool
 		//  统计上报组件
-		handler Statistics
+		handler *Statistics
+	}
+
+	// DefaultStatsHandler
+	// @Description: 默认命中率统计组件
+	DefaultStatsHandler struct {
 	}
 
 	// Statistics
@@ -57,3 +62,64 @@ type (
 		StatsQueryFail(err error)
 	}
 )
+
+// NewStatsHandler
+//
+//	@Description: 创建缓存命中率统计组件
+//	@param disable
+//	@param handler
+//	@return *StatsHandler
+func NewStatsHandler(disable bool, handler Statistics) *StatsHandler {
+	if disable {
+		// 不开启命中率统计功能
+		return nil
+	}
+
+	if handler == nil {
+		handler = DefaultStatsHandler{}
+	}
+	return &StatsHandler{
+		disable: disable,
+		handler: &handler,
+	}
+}
+
+func (DefaultStatsHandler) StatsHit() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsMiss() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsLocalHit() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsLocalMiss() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsRemoteHit() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsRemoteMiss() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsQuery() {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (DefaultStatsHandler) StatsQueryFail(err error) {
+	//TODO implement me
+	panic("implement me")
+}
