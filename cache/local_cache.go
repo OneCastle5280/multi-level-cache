@@ -9,10 +9,10 @@ type (
 		CommonCache[T]
 
 		//
-		//  cache
-		//  @Description: 本地缓存 cache
+		//  Cache
+		//  @Description: 本地缓存 Cache
 		//
-		cache Cache
+		Cache Cache
 	}
 )
 
@@ -20,14 +20,10 @@ type (
 //
 //	@Description: 创建本地缓存
 //	@param config
-//	@return *cache.LocalCache[T]
-func NewLocalCache[T any](config *Config) *LocalCache[T] {
-	if config.GetMode() == REMOTE {
-		return nil
-	}
-
+//	@return *Cache.LocalCache[T]
+func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
 	return &LocalCache[T]{
-		cache:       config.GetLocalCache(),
-		CommonCache: NewCommonCache[T](config),
+		Cache:       config.GetLocalCache(),
+		CommonCache: NewCommonCache[T](loader, config),
 	}
 }

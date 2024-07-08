@@ -16,9 +16,9 @@ type CommonCache[T any] struct {
 	statsHandler *StatsHandler
 }
 
-func NewCommonCache[T any](config *Config) CommonCache[T] {
+func NewCommonCache[T any](loader Loader, config *Config) CommonCache[T] {
 	return CommonCache[T]{
-		loader:       config.GetLoader(),
+		loader:       loader,
 		statsHandler: NewStatsHandler(config.statsDisable, config.statsHandler),
 	}
 }

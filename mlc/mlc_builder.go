@@ -1,6 +1,7 @@
 package mlc
 
 import (
+	"context"
 	"mlc/cache"
 )
 
@@ -26,11 +27,31 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 	// 缓存配置
 	config := cache.NewCacheConfig(opt...)
 
+	var localCache *cache.LocalCache[T]
+	var remoteCache *cache.RemoteCache[T]
+	var localCacheLoader cache.Loader
+
+	// 根据缓存模式进行初始化
+	switch config.GetMode() {
+	case cache.LOCAL:
+		localCache = cache.NewLocalCache[T](getFromDb, config)
+		break
+	case cache.REMOTE:
+		remoteCache = cache.NewRemoteCache[T](getFromDb, config)
+		break
+	case cache.MULTILEVEL:
+		remoteCache = cache.NewRemoteCache[T](getFromDb, config)
+		localCacheLoader = func(ctx context.Context, keys []string) (map[string][]byte, error) {
+			return remoteCache.Cache.BatchGet(ctx, keys)
+		}
+		localCache = cache.NewLocalCache[T](localCacheLoader, config)
+	}
+
 	// 创建缓存实例
 	return &DefaultMultiLevelCache[T]{
 		config:      config,
-		localCache:  cache.NewLocalCache[T](config),
-		remoteCache: cache.NewRemoteCache[T](config),
+		localCache:  localCache,
+		remoteCache: remoteCache,
 		getFromDb:   getFromDb,
 		unionKey:    name,
 	}

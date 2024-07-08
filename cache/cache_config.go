@@ -11,7 +11,6 @@ type (
 		remoteExpire   int        // remote 缓存过期时间, 单位：秒
 		statsDisable   bool       // 日志统计开关
 		statsHandler   Statistics // 自定义命中率统计
-		loader         Loader     // 回源接口
 		remoteCache    Cache      // 自定义远程缓存
 		localCache     Cache      // 自定义本地缓存
 		mode           Mode       // 缓存模式
