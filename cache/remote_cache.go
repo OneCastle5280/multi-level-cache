@@ -19,11 +19,14 @@ type (
 // NewRemoteCache
 //
 //	@Description: 创建远程缓存
-//	@param c
-//	@param loader
-//	@param config
-//	@return *RemoteCache[T]
+//	@param mode
+//	@return cache.RemoteCache[T]
 func NewRemoteCache[T any](config *Config) *RemoteCache[T] {
+	if config.GetMode() == LOCAL {
+		// 本地缓存模式，无需创建远程缓存
+		return nil
+	}
+
 	return &RemoteCache[T]{
 		cache:       config.GetRemoteCache(),
 		CommonCache: NewCommonCache[T](config),

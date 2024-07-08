@@ -29,36 +29,9 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 	// 创建缓存实例
 	return &DefaultMultiLevelCache[T]{
 		config:      config,
-		localCache:  initLocalCache[T](config),
-		remoteCache: initRemoteCache[T](config),
+		localCache:  cache.NewLocalCache[T](config),
+		remoteCache: cache.NewRemoteCache[T](config),
 		getFromDb:   getFromDb,
 		unionKey:    name,
 	}
-}
-
-// initRemoteCache[T any]
-//
-//	@Description: 创建远程缓存
-//	@param mode
-//	@return cache.RemoteCache[T]
-func initRemoteCache[T any](config *cache.Config) *cache.RemoteCache[T] {
-	if config.GetMode() == cache.LOCAL {
-		// 本地缓存模式，无需创建远程缓存
-		return nil
-	}
-
-	return cache.NewRemoteCache[T](config)
-}
-
-// initLocalCache[T any]
-//
-//	@Description: 创建本地缓存
-//	@param config
-//	@return *cache.LocalCache[T]
-func initLocalCache[T any](config *cache.Config) *cache.LocalCache[T] {
-	if config.GetMode() == cache.REMOTE {
-		return nil
-	}
-
-	return cache.NewLocalCache[T](config)
 }
