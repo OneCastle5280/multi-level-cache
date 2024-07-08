@@ -71,11 +71,6 @@ func (c *Config) GetStatsDisable() bool {
 	return c.statsDisable
 }
 
-// GetLoader 获取回源接口
-func (c *Config) GetLoader() Loader {
-	return c.loader
-}
-
 // GetRemoteCache 获取自定义远程缓存
 func (c *Config) GetRemoteCache() Cache {
 	return c.remoteCache
