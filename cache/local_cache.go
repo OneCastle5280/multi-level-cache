@@ -53,3 +53,18 @@ func (l *LocalCache[T]) BatchGet(ctx context.Context, keys []string) (map[string
 
 	return cacheValueMap, nil
 }
+
+// BatchDel
+//
+//	@Description: 批量清理本地缓存
+//	@receiver l
+//	@param ctx
+//	@param keys
+//	@return error
+func (l *LocalCache[T]) BatchDel(ctx context.Context, keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+
+	return l.cache.BatchDel(ctx, keys)
+}

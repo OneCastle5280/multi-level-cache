@@ -53,3 +53,17 @@ func (r *RemoteCache[T]) BatchGet(ctx context.Context, keys []string) (map[strin
 
 	return cacheValueMap, nil
 }
+
+// BatchDel
+//
+//	@Description: 批量删除 key 缓存
+//	@receiver r
+//	@param ctx
+//	@param keys
+//	@return error
+func (r *RemoteCache[T]) BatchDel(ctx context.Context, keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+	return r.cache.BatchDel(ctx, keys)
+}

@@ -74,12 +74,36 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 	return result, nil
 }
 
+// Del
+//
+//	@Description: 删除单个缓存
+//	@receiver d
+//	@param ctx
+//	@param key
+//	@return error
 func (d DefaultMultiLevelCache[T]) Del(ctx context.Context, key string) error {
-	//TODO implement me
-	panic("implement me")
+	if key == EMPTY {
+		return nil
+	}
+
+	return d.BatchDel(ctx, key)
 }
 
+// BatchDel
+//
+//	@Description: 批量删除缓存
+//	@receiver d
+//	@param ctx
+//	@param keys
+//	@return error
 func (d DefaultMultiLevelCache[T]) BatchDel(ctx context.Context, keys ...string) error {
-	//TODO implement me
-	panic("implement me")
+	// 清理远端缓存
+	err := d.remoteCache.BatchDel(ctx, keys)
+
+	if err != nil {
+		// todo 异常重试异步兜底
+	}
+
+	// todo 发送本地缓存失效
+	return nil
 }
