@@ -50,11 +50,11 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 	// 区分模式查询数据
 	switch d.config.GetMode() {
 	case REMOTE:
-		cacheValueMap, err = d.remoteCache.Cache.BatchGet(ctx, keys)
+		cacheValueMap, err = d.remoteCache.BatchGet(ctx, keys)
 		break
 	default:
 		// 默认查询本地缓存
-		cacheValueMap, err = d.localCache.Cache.BatchGet(ctx, keys)
+		cacheValueMap, err = d.localCache.BatchGet(ctx, keys)
 	}
 
 	if err != nil {

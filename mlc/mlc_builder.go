@@ -42,7 +42,7 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 	case cache.MULTILEVEL:
 		remoteCache = cache.NewRemoteCache[T](getFromDb, config)
 		localCacheLoader = func(ctx context.Context, keys []string) (map[string][]byte, error) {
-			return remoteCache.Cache.BatchGet(ctx, keys)
+			return remoteCache.BatchGet(ctx, keys)
 		}
 		localCache = cache.NewLocalCache[T](localCacheLoader, config)
 	}

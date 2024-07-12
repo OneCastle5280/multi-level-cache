@@ -1,5 +1,7 @@
 package cache
 
+import "context"
+
 type (
 	LocalCache[T any] struct {
 		//
@@ -9,10 +11,10 @@ type (
 		CommonCache[T]
 
 		//
-		//  Cache
-		//  @Description: 本地缓存 Cache
+		//  cache
+		//  @Description: 本地缓存 cache
 		//
-		Cache Cache
+		cache Cache
 	}
 )
 
@@ -20,10 +22,34 @@ type (
 //
 //	@Description: 创建本地缓存
 //	@param config
-//	@return *Cache.LocalCache[T]
+//	@return *cache.LocalCache[T]
 func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
 	return &LocalCache[T]{
-		Cache:       config.GetLocalCache(),
+		cache:       config.getLocalCache(),
 		CommonCache: NewCommonCache[T](loader, config),
 	}
+}
+
+// BatchGet
+//
+//	@Description: 批量获取本地缓存
+//	@receiver l
+//	@param ctx
+//	@param keys
+//	@return map[string][]byte
+//	@return error
+func (l *LocalCache[T]) BatchGet(ctx context.Context, keys []string) (map[string][]byte, error) {
+	result := make(map[string][]byte, len(keys))
+	if len(keys) == 0 {
+		return result, nil
+	}
+
+	cacheValueMap, err := l.cache.BatchGet(ctx, keys)
+
+	if err != nil {
+		// todo 日志打印
+		return nil, err
+	}
+
+	return cacheValueMap, nil
 }

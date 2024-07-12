@@ -71,12 +71,12 @@ func (c *Config) GetStatsDisable() bool {
 	return c.statsDisable
 }
 
-// GetRemoteCache 获取自定义远程缓存
-func (c *Config) GetRemoteCache() Cache {
+// getRemoteCache 获取自定义远程缓存
+func (c *Config) getRemoteCache() Cache {
 	return c.remoteCache
 }
 
-// GetLocalCache 获取自定义本地缓存
-func (c *Config) GetLocalCache() Cache {
+// getLocalCache 获取自定义本地缓存
+func (c *Config) getLocalCache() Cache {
 	return c.localCache
 }
