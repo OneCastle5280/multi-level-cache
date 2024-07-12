@@ -39,19 +39,7 @@ func NewRemoteCache[T any](loader Loader, config *Config) *RemoteCache[T] {
 //	@return map[string][]byte
 //	@return error
 func (r *RemoteCache[T]) BatchGet(ctx context.Context, keys []string) (map[string][]byte, error) {
-	result := make(map[string][]byte, len(keys))
-	if len(keys) == 0 {
-		return result, nil
-	}
-
-	cacheValueMap, err := r.cache.BatchGet(ctx, keys)
-
-	if err != nil {
-		// todo 日志打印
-		return nil, err
-	}
-
-	return cacheValueMap, nil
+	return r.batchGet(ctx, r.cache, keys)
 }
 
 // BatchDel
