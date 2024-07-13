@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"mlc/util"
 	"time"
 )
 
@@ -53,6 +54,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 
 	// Mark whether there is an exception in this query
 	existErr := false
+	var breakDownKeys []string
 
 	// batch query from cache
 	cacheValueMap, notFoundKeys, err := cache.BatchGet(ctx, keys)
@@ -71,6 +73,8 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 
 	// add cache value to result
 	for key, val := range cacheValueMap {
+		// todo 判断是否为击穿节点
+
 		result[key] = val
 	}
 
@@ -126,4 +130,31 @@ func (c *CommonCache[T]) reload(ctx context.Context, cache Cache, keys []string)
 	}
 
 	return sourceValues, nil
+}
+
+// collectBreakDownKeys
+//
+//	@Description: collect break down keys
+//	@receiver c
+//	@param ctx
+//	@param queryKeys
+//	@param resultKeys
+//	@param breakDownKeys
+//	@return []string
+func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []string, resultKeys []string, breakDownKeys []string) []string {
+	if len(queryKeys) == len(resultKeys)+len(breakDownKeys) {
+		return []string{}
+	}
+
+	var existKeys []string
+	existKeys = append(existKeys, resultKeys...)
+	existKeys = append(existKeys, breakDownKeys...)
+
+	var result []string
+	for _, key := range queryKeys {
+		if !util.Contains(existKeys, key) {
+			result = append(result, key)
+		}
+	}
+	return result
 }
