@@ -26,7 +26,7 @@ type (
 func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
 	return &LocalCache[T]{
 		cache:       config.getLocalCache(),
-		CommonCache: NewCommonCache[T](loader, config),
+		CommonCache: NewCommonCache[T](loader, config.GetLocalExpire(), config),
 	}
 }
 

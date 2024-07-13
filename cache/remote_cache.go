@@ -26,7 +26,7 @@ type (
 func NewRemoteCache[T any](loader Loader, config *Config) *RemoteCache[T] {
 	return &RemoteCache[T]{
 		cache:       config.getRemoteCache(),
-		CommonCache: NewCommonCache[T](loader, config),
+		CommonCache: NewCommonCache[T](loader, config.GetRemoteExpire(), config),
 	}
 }
 

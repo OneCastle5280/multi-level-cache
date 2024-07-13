@@ -29,12 +29,4 @@ type Cache interface {
 	//  @return error
 	//
 	BatchDel(ctx context.Context, keys []string) error
-	//
-	// IsNotFoundErr
-	//  @Description: 判断 err 是否为记录不存在
-	//  @param ctx
-	//  @param err
-	//  @return bool
-	//
-	IsNotFoundErr(ctx context.Context, err error) bool
 }
