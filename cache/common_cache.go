@@ -26,6 +26,12 @@ type CommonCache[T any] struct {
 	//  @Description: 统计组件
 	//
 	statsHandler *StatsHandler
+
+	//
+	//  breakDownHandler
+	//  @Description: 缓存击穿处理器
+	//
+	breakDownHandler CacheBreakDownHandler
 }
 
 func NewCommonCache[T any](loader Loader, expire int, config *Config) CommonCache[T] {
@@ -73,9 +79,12 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 
 	// add cache value to result
 	for key, val := range cacheValueMap {
-		// todo 判断是否为击穿节点
-
-		result[key] = val
+		if c.breakDownHandler.IsBreakDownKeys(val) {
+			// exist breakDownKeys
+			breakDownKeys = append(breakDownKeys, key)
+		} else {
+			result[key] = val
+		}
 	}
 
 	// handle not found keys
@@ -93,9 +102,9 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 		}
 	}
 
-	// todo 缓存穿透情况处理
 	if !existErr {
-
+		// 查询没有出现异常，处理 缓存穿透场景
+		c.handleBreakDownKeys(ctx, keys, util.Keys(result), breakDownKeys)
 	}
 
 	return result, nil
@@ -139,16 +148,16 @@ func (c *CommonCache[T]) reload(ctx context.Context, cache Cache, keys []string)
 //	@param ctx
 //	@param queryKeys
 //	@param resultKeys
-//	@param breakDownKeys
+//	@param existBreakDownKeys
 //	@return []string
-func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []string, resultKeys []string, breakDownKeys []string) []string {
-	if len(queryKeys) == len(resultKeys)+len(breakDownKeys) {
+func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []string, resultKeys []string, existBreakDownKeys []string) []string {
+	if len(queryKeys) == len(resultKeys)+len(existBreakDownKeys) {
 		return []string{}
 	}
 
 	var existKeys []string
 	existKeys = append(existKeys, resultKeys...)
-	existKeys = append(existKeys, breakDownKeys...)
+	existKeys = append(existKeys, existBreakDownKeys...)
 
 	var result []string
 	for _, key := range queryKeys {
@@ -157,4 +166,22 @@ func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []s
 		}
 	}
 	return result
+}
+
+// handleBreakDownKeys
+//
+//	@Description: 处理击穿节点
+//	@receiver c
+//	@param ctx
+//	@param queryKeys
+//	@param resultKeys
+//	@param existBreakDownKeys
+func (c *CommonCache[T]) handleBreakDownKeys(ctx context.Context, queryKeys []string, resultKeys []string, existBreakDownKeys []string) {
+	// collect need handle break down keys
+	needHandleBreakDownKeys := c.collectBreakDownKeys(ctx, queryKeys, resultKeys, existBreakDownKeys)
+	// todo 打印击穿节点
+	err := c.breakDownHandler.HandleBreakDownKeys(ctx, needHandleBreakDownKeys)
+	if err != nil {
+		// todo 打印日志，降级暂不处理
+	}
 }
