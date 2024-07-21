@@ -12,12 +12,12 @@ const (
 type (
 	// DefaultMultiLevelCache 多级缓存默认实现类
 	DefaultMultiLevelCache[T any] struct {
-		config      *Config         // 缓存配置
-		remoteCache *RemoteCache[T] // remote 缓存
-		localCache  *LocalCache[T]  // local 缓存
-		getFromDb   Loader          // 回源 db loader
-		coder       Serialization   // 序列化组件
-		unionKey    string          // 缓存唯一标识(全局唯一）
+		config        *Config         // 缓存配置
+		remoteCache   *RemoteCache[T] // remote 缓存
+		localCache    *LocalCache[T]  // local 缓存
+		getFromDb     Loader          // 回源 db loader
+		serialization Serialization   // 序列化组件
+		unionKey      string          // 缓存唯一标识(全局唯一）
 	}
 )
 
@@ -64,7 +64,7 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 	// 序列化结果
 	for key, value := range cacheValueMap {
 		t := new(T)
-		marshalErr := d.coder.Unmarshal(value, t)
+		marshalErr := d.serialization.Unmarshal(value, t)
 		if marshalErr != nil {
 			// todo 日志打印
 			continue

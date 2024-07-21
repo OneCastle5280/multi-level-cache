@@ -12,6 +12,7 @@ type (
 		statsDisable     bool                  // 日志统计开关
 		statsHandler     Statistics            // 自定义命中率统计
 		breakDownHandler CacheBreakDownHandler // 自定义缓存穿透处理器
+		serialization    Serialization         // 自定义序列化方式
 		remoteCache      Cache                 // 自定义远程缓存
 		localCache       Cache                 // 自定义本地缓存
 		mode             Mode                  // 缓存模式
@@ -80,4 +81,9 @@ func (c *Config) getRemoteCache() Cache {
 // getLocalCache 获取自定义本地缓存
 func (c *Config) getLocalCache() Cache {
 	return c.localCache
+}
+
+// GetSerialization 获取序列化组件
+func (c *Config) GetSerialization() Serialization {
+	return c.serialization
 }

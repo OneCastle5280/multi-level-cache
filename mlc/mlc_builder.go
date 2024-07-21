@@ -51,12 +51,19 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 		localCache = cache.NewLocalCache[T](localCacheLoader, config)
 	}
 
+	serialization := config.GetSerialization()
+	if serialization == nil {
+		// default json serialization
+		serialization = cache.NewJsonSerialization()
+	}
+
 	// 创建缓存实例
 	return &DefaultMultiLevelCache[T]{
-		config:      config,
-		localCache:  localCache,
-		remoteCache: remoteCache,
-		getFromDb:   getFromDb,
-		unionKey:    name,
+		config:        config,
+		localCache:    localCache,
+		remoteCache:   remoteCache,
+		getFromDb:     getFromDb,
+		serialization: serialization,
+		unionKey:      name,
 	}
 }
