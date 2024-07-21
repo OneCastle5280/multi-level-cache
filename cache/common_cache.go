@@ -34,11 +34,24 @@ type CommonCache[T any] struct {
 	breakDownHandler CacheBreakDownHandler
 }
 
+// NewCommonCache
+//
+//	@Description: new common cache
+//	@param loader
+//	@param expire
+//	@param config
+//	@return CommonCache[T]
 func NewCommonCache[T any](loader Loader, expire int, config *Config) CommonCache[T] {
+	breakDownHandler := config.breakDownHandler
+	if breakDownHandler == nil {
+		breakDownHandler = NewDefaultCacheBreakDownHandler()
+	}
+
 	return CommonCache[T]{
-		expire:       time.Duration(expire),
-		loader:       loader,
-		statsHandler: NewStatsHandler(config.statsDisable, config.statsHandler),
+		expire:           time.Duration(expire),
+		loader:           loader,
+		breakDownHandler: breakDownHandler,
+		statsHandler:     NewStatsHandler(config.statsDisable, config.statsHandler),
 	}
 }
 
@@ -79,7 +92,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 
 	// add cache value to result
 	for key, val := range cacheValueMap {
-		if c.breakDownHandler.IsBreakDownKeys(val) {
+		if c.breakDownHandler.IsBreakDownKeys(nil, val) {
 			// exist breakDownKeys
 			breakDownKeys = append(breakDownKeys, key)
 		} else {
@@ -104,7 +117,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 
 	if !existErr {
 		// 查询没有出现异常，处理 缓存穿透场景
-		c.handleBreakDownKeys(ctx, keys, util.Keys(result), breakDownKeys)
+		c.handleBreakDownKeys(ctx, cache, keys, util.Keys(result), breakDownKeys)
 	}
 
 	return result, nil
@@ -176,12 +189,16 @@ func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []s
 //	@param queryKeys
 //	@param resultKeys
 //	@param existBreakDownKeys
-func (c *CommonCache[T]) handleBreakDownKeys(ctx context.Context, queryKeys []string, resultKeys []string, existBreakDownKeys []string) {
+func (c *CommonCache[T]) handleBreakDownKeys(ctx context.Context, cache Cache, queryKeys []string, resultKeys []string, existBreakDownKeys []string) {
 	// collect need handle break down keys
 	needHandleBreakDownKeys := c.collectBreakDownKeys(ctx, queryKeys, resultKeys, existBreakDownKeys)
+	if len(needHandleBreakDownKeys) == 0 {
+		return
+	}
 	// todo 打印击穿节点
-	err := c.breakDownHandler.HandleBreakDownKeys(ctx, needHandleBreakDownKeys)
+	values := c.breakDownHandler.HandleBreakDownKeys(ctx, needHandleBreakDownKeys)
+	err := cache.BatchSet(ctx, values, c.expire)
 	if err != nil {
-		// todo 打印日志，降级暂不处理
+		// todo 打印错误日志
 	}
 }

@@ -6,14 +6,15 @@ type (
 	// @Description: 缓存自定义配置
 	//
 	Config struct {
-		localExpire    int        // local  缓存过期时间, 单位：秒
-		localLimitSize int        // local  缓存大小，默认为 512 KB
-		remoteExpire   int        // remote 缓存过期时间, 单位：秒
-		statsDisable   bool       // 日志统计开关
-		statsHandler   Statistics // 自定义命中率统计
-		remoteCache    Cache      // 自定义远程缓存
-		localCache     Cache      // 自定义本地缓存
-		mode           Mode       // 缓存模式
+		localExpire      int                   // local  缓存过期时间, 单位：秒
+		localLimitSize   int                   // local  缓存大小，默认为 512 KB
+		remoteExpire     int                   // remote 缓存过期时间, 单位：秒
+		statsDisable     bool                  // 日志统计开关
+		statsHandler     Statistics            // 自定义命中率统计
+		breakDownHandler CacheBreakDownHandler // 自定义缓存穿透处理器
+		remoteCache      Cache                 // 自定义远程缓存
+		localCache       Cache                 // 自定义本地缓存
+		mode             Mode                  // 缓存模式
 	}
 
 	ConfigOption func(option *Config)
