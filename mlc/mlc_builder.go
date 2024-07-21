@@ -3,11 +3,13 @@ package mlc
 import (
 	"context"
 	"mlc/cache"
+	"sync"
 )
 
 var (
 	// 记录所有 mlc 实例
-	mlcMap = make(map[string]struct{})
+	mlcMap      = make(map[string]struct{})
+	builderLock sync.Mutex
 )
 
 // NewDefaultMultiLevelCache
@@ -18,6 +20,8 @@ var (
 //	@param opt				可选配置
 //	@return *DefaultMultiLevelCache[T]
 func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt ...cache.ConfigOption) *DefaultMultiLevelCache[T] {
+	builderLock.Lock()
+	defer builderLock.Unlock()
 
 	// 检查 name 唯一性
 	if _, ok := mlcMap[name]; ok {
