@@ -10,7 +10,7 @@ type (
 		localLimitSize   int                   // local  缓存大小，默认为 512 KB
 		remoteExpire     int                   // remote 缓存过期时间, 单位：秒
 		statsDisable     bool                  // 日志统计开关
-		statsHandler     Statistics            // 自定义命中率统计
+		statsHandler     StatisticsHandler     // 自定义命中率统计
 		breakDownHandler CacheBreakDownHandler // 自定义缓存穿透处理器
 		serialization    Serialization         // 自定义序列化方式
 		remoteCache      Cache                 // 自定义远程缓存
