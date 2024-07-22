@@ -30,8 +30,6 @@ type CacheBreakDownHandler interface {
 	HandleBreakDownKeys(ctx context.Context, breakDownKeys []string) map[string][]byte
 }
 
-type breakDownKeysHandleFunc func(ctx context.Context, breakDownKeys []string) error
-
 // NewDefaultCacheBreakDownHandler
 //
 //	@Description: 创建默认缓存穿透处理器
