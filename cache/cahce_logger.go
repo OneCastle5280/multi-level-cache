@@ -16,7 +16,7 @@ type (
 	// MlcLogger
 	// @Description: Logger 实现类
 	MlcLogger struct {
-		logger *Logger
+		logger Logger
 	}
 
 	// DefaultLogger
@@ -29,24 +29,28 @@ type (
 )
 
 func (d DefaultLogger) Debug(format string, v ...any) {
-	fmt.Printf(format, v)
+	fmt.Printf(format, v...)
 }
 
 func (d DefaultLogger) Info(format string, v ...any) {
-	fmt.Printf(format, v)
+	fmt.Printf(format, v...)
 }
 
 func (d DefaultLogger) Warn(format string, v ...any) {
-	fmt.Printf(format, v)
+	fmt.Printf(format, v...)
 }
 
 func (d DefaultLogger) Error(format string, v ...any) {
-	fmt.Printf(format, v)
+	fmt.Printf(format, v...)
 }
 
 var (
 	// 日志打印等级
 	logLevel LogLevel
+	// mlc logger
+	mlcLogger = MlcLogger{
+		logger: &DefaultLogger{},
+	}
 )
 
 const (
@@ -67,15 +71,61 @@ func SetLoggerLevel(level LogLevel) {
 	logLevel = level
 }
 
+// SetLogger
+//
+//	@Description: 设置自定义 Logger
+//	@param logger
+func SetLogger(logger Logger) {
+	if logger == nil {
+		panic("logger is nil")
+	}
+	mlcLogger.logger = logger
+}
+
+// Debug
+//
+//	@Description: debug
+//	@param format
+//	@param v
 func Debug(format string, v ...any) {
-
+	if logLevel > DEBUG {
+		return
+	}
+	mlcLogger.logger.Debug(format, v...)
 }
+
+// Info
+//
+//	@Description: info
+//	@param format
+//	@param v
 func Info(format string, v ...any) {
-
+	if logLevel > INFO {
+		return
+	}
+	mlcLogger.logger.Info(format, v...)
 }
+
+// Warn
+//
+//	@Description: warn
+//	@param format
+//	@param v
 func Warn(format string, v ...any) {
-
+	if logLevel > WARN {
+		return
+	}
+	mlcLogger.logger.Info(format, v...)
 }
-func Error(format string, v ...any) {
 
+// Error
+//
+//	@Description: error
+//	@param format
+//	@param v
+func Error(format string, v ...any) {
+	if logLevel > ERROR {
+		return
+	}
+	mlcLogger.logger.Info(format, v...)
 }
