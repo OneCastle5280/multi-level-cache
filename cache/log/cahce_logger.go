@@ -1,4 +1,4 @@
-package cache
+package log
 
 import "fmt"
 
@@ -115,7 +115,7 @@ func Warn(format string, v ...any) {
 	if logLevel > WARN {
 		return
 	}
-	mlcLogger.logger.Info(format, v...)
+	mlcLogger.logger.Warn(format, v...)
 }
 
 // Error
@@ -127,5 +127,5 @@ func Error(format string, v ...any) {
 	if logLevel > ERROR {
 		return
 	}
-	mlcLogger.logger.Info(format, v...)
+	mlcLogger.logger.Error(format, v...)
 }

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"mlc/cache/log"
 	"mlc/util"
 	"time"
 )
@@ -79,14 +80,15 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 	cacheValueMap, notFoundKeys, err := cache.BatchGet(ctx, keys)
 	if err != nil {
 		existErr = true
-		// todo 打印日志，查询出现了异常，需要降级回源
+		log.Error("[batchGet] query keys: %+v err:%+v, need reload source", keys, err)
 		sourceValueMap, loaderErr := c.loader(ctx, keys)
 		if loaderErr != nil {
-			// todo 打印日志，回源也出现了异常
+			log.Error("[batchGet] reload keys: %+v err:%+v", keys, err)
 			return nil, err
 		}
 
 		// return source value
+		log.Info("[batchGet] keys: %+v, sourceValueMap: %+v", keys, sourceValueMap)
 		return sourceValueMap, nil
 	}
 
@@ -94,6 +96,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 	for key, val := range cacheValueMap {
 		if c.breakDownHandler.IsBreakDownKeys(nil, val) {
 			// exist breakDownKeys
+			log.Info("[batchGet] %s is break down key", key)
 			breakDownKeys = append(breakDownKeys, key)
 		} else {
 			result[key] = val
@@ -105,7 +108,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 		// loader source value
 		sourceValueMap, reloadErr := c.reload(ctx, cache, notFoundKeys)
 		if reloadErr != nil {
-			// todo 打印日志，回源也出现了异常
+			log.Error("[batchGet] reload keys: %+v err:%+v", keys, err)
 			return nil, err
 		}
 
@@ -120,6 +123,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 		c.handleBreakDownKeys(ctx, cache, keys, util.Keys(result), breakDownKeys)
 	}
 
+	log.Info("[batchGet] keys: %+v, result: %+v", keys, result)
 	return result, nil
 }
 
@@ -141,14 +145,14 @@ func (c *CommonCache[T]) reload(ctx context.Context, cache Cache, keys []string)
 	// load from source
 	sourceValues, err := c.loader(ctx, keys)
 	if err != nil {
-		// todo 打印日志，回源出现了异常
 		return nil, err
 	}
 
-	// reset to cache
+	// reload to cache
 	err = cache.BatchSet(ctx, sourceValues, c.expire)
 	if err != nil {
-		// todo 打印日志，说明 reload 缓存出现了异常
+		// reload 异常则降级，等下次重新写入
+		log.Error("[reload] reload sourceValues: %+v to cache err %+v", sourceValues, err)
 	}
 
 	return sourceValues, nil
@@ -172,13 +176,14 @@ func (c *CommonCache[T]) collectBreakDownKeys(ctx context.Context, queryKeys []s
 	existKeys = append(existKeys, resultKeys...)
 	existKeys = append(existKeys, existBreakDownKeys...)
 
-	var result []string
+	var breakDownKeys []string
 	for _, key := range queryKeys {
 		if !util.Contains(existKeys, key) {
-			result = append(result, key)
+			breakDownKeys = append(breakDownKeys, key)
 		}
 	}
-	return result
+	log.Info("[collectBreakDownKeys] break down keys: %+v", breakDownKeys)
+	return breakDownKeys
 }
 
 // handleBreakDownKeys
@@ -195,10 +200,10 @@ func (c *CommonCache[T]) handleBreakDownKeys(ctx context.Context, cache Cache, q
 	if len(needHandleBreakDownKeys) == 0 {
 		return
 	}
-	// todo 打印击穿节点
 	values := c.breakDownHandler.HandleBreakDownKeys(ctx, needHandleBreakDownKeys)
+	log.Info("[handleBreakDownKeys] values: %+v", values)
 	err := cache.BatchSet(ctx, values, c.expire)
 	if err != nil {
-		// todo 打印错误日志
+		log.Error("[handleBreakDownKeys] handle break down keys: %+v, err %+v", needHandleBreakDownKeys, err)
 	}
 }

@@ -3,6 +3,7 @@ package mlc
 import (
 	"context"
 	. "mlc/cache"
+	"mlc/cache/log"
 )
 
 const (
@@ -58,15 +59,15 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 	}
 
 	if err != nil {
-		// todo 查询 err 时异常处理
+		return nil, err
 	}
 
-	// 序列化结果
+	// unmarshal value
 	for key, value := range cacheValueMap {
 		t := new(T)
 		marshalErr := d.serialization.Unmarshal(value, t)
 		if marshalErr != nil {
-			// todo 日志打印
+			log.Error("[BatchGet] unmarshal %+v err %+v", value, err)
 			continue
 		}
 		result[key] = t
