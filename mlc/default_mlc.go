@@ -98,13 +98,17 @@ func (d DefaultMultiLevelCache[T]) Del(ctx context.Context, key string) error {
 //	@param keys
 //	@return error
 func (d DefaultMultiLevelCache[T]) BatchDel(ctx context.Context, keys ...string) error {
-	// 清理远端缓存
-	err := d.remoteCache.BatchDel(ctx, keys)
-
-	if err != nil {
-		// todo 异常重试异步兜底
+	mode := d.config.GetMode()
+	if mode == REMOTE {
+		err := d.remoteCache.BatchDel(ctx, keys)
+		if err != nil {
+			log.Error("[BatchDel] keys: %+v, err: %v", keys, err)
+			return err
+		}
+		return nil
 	}
 
-	// todo 发送本地缓存失效
+	// delete local cache
+
 	return nil
 }
