@@ -40,10 +40,24 @@ func NewDefaultCacheBreakDownHandler() DefaultCacheBreakDownHandler {
 
 type DefaultCacheBreakDownHandler struct{}
 
+// IsBreakDownKeys
+//
+//	@Description:  判断是否为缓存穿透 keys
+//	@receiver DefaultCacheBreakDownHandler
+//	@param ctx
+//	@param value
+//	@return bool
 func (DefaultCacheBreakDownHandler) IsBreakDownKeys(ctx context.Context, value []byte) bool {
 	return bytes.Equal(value, defaultCacheBreakdownNode)
 }
 
+// HandleBreakDownKeys
+//
+//	@Description: 封装处理穿透 key
+//	@receiver DefaultCacheBreakDownHandler
+//	@param ctx
+//	@param breakDownKeys
+//	@return map[string][]byte
 func (DefaultCacheBreakDownHandler) HandleBreakDownKeys(ctx context.Context, breakDownKeys []string) map[string][]byte {
 	result := make(map[string][]byte, len(breakDownKeys))
 	if len(breakDownKeys) == 0 {

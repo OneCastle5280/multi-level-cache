@@ -4,7 +4,6 @@ type (
 
 	// Config
 	// @Description: 缓存自定义配置
-	//
 	Config struct {
 		localExpire      int                   // local  缓存过期时间, 单位：秒
 		localLimitSize   int                   // local  缓存大小，默认为 512 KB

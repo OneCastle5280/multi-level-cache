@@ -8,8 +8,15 @@ import (
 // Cache
 // @Description:
 type Cache interface {
-	Set(ctx context.Context, key string, value any, expire time.Duration) error         // 设置缓存
-	BatchSet(ctx context.Context, values map[string][]byte, expire time.Duration) error // 批量设置缓存
+	//
+	// BatchSet
+	//  @Description: 批量设置缓存
+	//  @param ctx
+	//  @param values
+	//  @param expire
+	//  @return error
+	//
+	BatchSet(ctx context.Context, values map[string][]byte, expire time.Duration) error
 
 	//
 	// BatchGet
