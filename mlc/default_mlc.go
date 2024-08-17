@@ -102,13 +102,19 @@ func (d DefaultMultiLevelCache[T]) BatchDel(ctx context.Context, keys ...string)
 	if mode == REMOTE {
 		err := d.remoteCache.BatchDel(ctx, keys)
 		if err != nil {
-			log.Error("[BatchDel] keys: %+v, err: %v", keys, err)
+			log.Error("[BatchDel] remote keys: %+v, err: %v", keys, err)
 			return err
 		}
 		return nil
 	}
 
 	// delete local cache
+	err := d.localCache.BatchDel(ctx, keys)
+	if err != nil {
+		log.Error("[BatchDel] local keys: %+v, err: %v", keys, err)
+		return err
+	}
 
+	log.Info("[BatchDel] >>>> keys: %+v success", keys)
 	return nil
 }

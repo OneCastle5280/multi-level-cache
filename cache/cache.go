@@ -28,6 +28,7 @@ type Cache interface {
 	//  @return error				查询过程中出现的异常
 	//
 	BatchGet(ctx context.Context, keys []string) (map[string][]byte, []string, error)
+
 	//
 	// BatchDel
 	//  @Description: 批量删除缓存
