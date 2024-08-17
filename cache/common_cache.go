@@ -65,7 +65,7 @@ func NewCommonCache[T any](loader Loader, expire int, config *Config) CommonCach
 //	@param keys
 //	@return map[string][]byte
 //	@return error
-func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []string) (map[string][]byte, error) {
+func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler *StatsHandler, cacheType cacheType, keys []string) (map[string][]byte, error) {
 	result := make(map[string][]byte, len(keys))
 
 	if len(keys) == 0 {
@@ -119,8 +119,19 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, keys []strin
 	}
 
 	if !existErr {
-		// 查询没有出现异常，处理 缓存穿透场景
+		// if not exist err, handle breakDown keys
 		c.handleBreakDownKeys(ctx, cache, keys, util.Keys(result), breakDownKeys)
+	}
+
+	switch cacheType {
+	case LocalType:
+		statsHandler.StatsLocalHit(ctx, int64(len(cacheValueMap)))
+		statsHandler.StatsLocalMiss(ctx, int64(len(notFoundKeys)))
+		break
+	case RemoteType:
+		statsHandler.StatsRemoteHit(ctx, int64(len(cacheValueMap)))
+		statsHandler.StatsRemoteMiss(ctx, int64(len(notFoundKeys)))
+		break
 	}
 
 	log.Info("[batchGet] keys: %+v, result: %+v", keys, result)

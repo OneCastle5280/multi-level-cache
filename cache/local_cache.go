@@ -39,7 +39,7 @@ func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
 //	@return map[string][]byte
 //	@return error
 func (l *LocalCache[T]) BatchGet(ctx context.Context, keys []string) (map[string][]byte, error) {
-	return l.batchGet(ctx, l.cache, keys)
+	return l.batchGet(ctx, l.cache, l.statsHandler, RemoteType, keys)
 }
 
 // BatchDel

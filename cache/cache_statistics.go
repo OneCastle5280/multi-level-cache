@@ -1,6 +1,9 @@
 package cache
 
-import "sync/atomic"
+import (
+	"context"
+	"sync/atomic"
+)
 
 type (
 
@@ -34,43 +37,43 @@ type (
 		// StatsHit
 		//  @Description: 统计命中次数
 		//
-		StatsHit()
+		StatsHit(ctx context.Context, count int64)
 		//
 		// StatsMiss
 		//  @Description: 统计不命中次数
 		//
-		StatsMiss()
+		StatsMiss(ctx context.Context, count int64)
 		//
 		// StatsLocalHit
 		//  @Description: 统计本地缓存命中次数
 		//
-		StatsLocalHit()
+		StatsLocalHit(ctx context.Context, count int64)
 		//
 		// StatsLocalMiss
 		//  @Description: 统计本地缓存不命中次数
 		//
-		StatsLocalMiss()
+		StatsLocalMiss(ctx context.Context, count int64)
 		//
 		// StatsRemoteHit
 		//  @Description: 统计远程缓存命中次数
 		//
-		StatsRemoteHit()
+		StatsRemoteHit(ctx context.Context, count int64)
 		//
 		// StatsRemoteMiss
 		//  @Description: 统计远程缓存不命中次数
 		//
-		StatsRemoteMiss()
+		StatsRemoteMiss(ctx context.Context, count int64)
 		//
 		// StatsQueryTotal
 		//  @Description: 统计缓存访问总次数
 		//
-		StatsQueryTotal()
+		StatsQueryTotal(ctx context.Context, count int64)
 		//
 		// StatsQueryFail
 		//  @Description: 统计查询失败的次数
 		//  @param err
 		//
-		StatsQueryFail(err error)
+		StatsQueryFail(ctx context.Context, count int64, err error)
 	}
 )
 
@@ -95,34 +98,98 @@ func NewStatsHandler(disable bool, handler StatisticsHandler) *StatsHandler {
 	}
 }
 
-func (d *DefaultStatsHandler) StatsHit() {
-	atomic.AddUint64(&d.HitTotal, 1)
+func (d *DefaultStatsHandler) StatsHit(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.HitTotal, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsMiss() {
-	atomic.AddUint64(&d.MissTotal, 1)
+func (d *DefaultStatsHandler) StatsMiss(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.MissTotal, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsLocalHit() {
-	atomic.AddUint64(&d.LocalHit, 1)
+func (d *DefaultStatsHandler) StatsLocalHit(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.LocalHit, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsLocalMiss() {
-	atomic.AddUint64(&d.LocalMiss, 1)
+func (d *DefaultStatsHandler) StatsLocalMiss(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.LocalMiss, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsRemoteHit() {
-	atomic.AddUint64(&d.RemoteHit, 1)
+func (d *DefaultStatsHandler) StatsRemoteHit(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.RemoteHit, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsRemoteMiss() {
-	atomic.AddUint64(&d.RemoteMiss, 1)
+func (d *DefaultStatsHandler) StatsRemoteMiss(ctx context.Context, count int64) {
+	atomic.AddUint64(&d.RemoteMiss, uint64(count))
 }
 
-func (d *DefaultStatsHandler) StatsQueryTotal() {
+func (d *DefaultStatsHandler) StatsQueryTotal(ctx context.Context, count int64) {
 	atomic.AddUint64(&d.QueryTotal, 1)
 }
 
-func (d *DefaultStatsHandler) StatsQueryFail(err error) {
+func (d *DefaultStatsHandler) StatsQueryFail(ctx context.Context, count int64, err error) {
 	atomic.AddUint64(&d.QueryFail, 1)
+}
+
+func (s *StatsHandler) StatsHit(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsHit(nil, count)
+}
+
+func (s *StatsHandler) StatsMiss(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsMiss(nil, count)
+}
+
+func (s *StatsHandler) StatsLocalHit(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsLocalHit(nil, count)
+}
+
+func (s *StatsHandler) StatsLocalMiss(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsLocalMiss(nil, count)
+}
+
+func (s *StatsHandler) StatsRemoteHit(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsRemoteHit(nil, count)
+}
+
+func (s *StatsHandler) StatsRemoteMiss(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsRemoteMiss(nil, count)
+}
+
+func (s *StatsHandler) StatsQueryTotal(ctx context.Context, count int64) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsQueryTotal(ctx, count)
+}
+
+func (s *StatsHandler) StatsQueryFail(ctx context.Context, count int64, err error) {
+	if s.disable {
+		return
+	}
+	handler := *s.handler
+	handler.StatsQueryFail(ctx, count, err)
 }

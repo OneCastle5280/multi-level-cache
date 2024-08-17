@@ -39,7 +39,7 @@ func NewRemoteCache[T any](loader Loader, config *Config) *RemoteCache[T] {
 //	@return map[string][]byte
 //	@return error
 func (r *RemoteCache[T]) BatchGet(ctx context.Context, keys []string) (map[string][]byte, error) {
-	return r.batchGet(ctx, r.cache, keys)
+	return r.batchGet(ctx, r.cache, r.statsHandler, RemoteType, keys)
 }
 
 // BatchDel

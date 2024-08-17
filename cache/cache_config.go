@@ -28,6 +28,7 @@ func NewCacheConfig(options ...ConfigOption) *Config {
 		remoteExpire:   defaultRemoteExpire,
 		localLimitSize: defaultLocalCacheLimitSize,
 		mode:           MULTILEVEL, // 默认为多级缓存模式
+		statsHandler:   NewStatsHandler(false, nil),
 	}
 
 	// 自定义 config
@@ -70,6 +71,11 @@ func (c *Config) GetMode() Mode {
 // GetStatsDisable 获取日志统计功能开关
 func (c *Config) GetStatsDisable() bool {
 	return c.statsDisable
+}
+
+// GetStatsHandler 获取日志统计组件
+func (c *Config) GetStatsHandler() StatisticsHandler {
+	return c.statsHandler
 }
 
 // getRemoteCache 获取自定义远程缓存

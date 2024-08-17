@@ -57,6 +57,8 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 		serialization = cache.NewJsonSerialization()
 	}
 
+	statsHandler := cache.NewStatsHandler(config.GetStatsDisable(), config.GetStatsHandler())
+
 	// 创建缓存实例
 	return &DefaultMultiLevelCache[T]{
 		config:        config,
@@ -64,6 +66,7 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 		remoteCache:   remoteCache,
 		getFromDb:     getFromDb,
 		serialization: serialization,
+		statsHandler:  statsHandler,
 		unionKey:      name,
 	}
 }

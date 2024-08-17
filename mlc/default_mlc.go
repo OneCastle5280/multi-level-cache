@@ -18,6 +18,7 @@ type (
 		localCache    *LocalCache[T]  // local 缓存
 		getFromDb     Loader          // 回源 db loader
 		serialization Serialization   // 序列化组件
+		statsHandler  *StatsHandler   // 统计组件
 		unionKey      string          // 缓存唯一标识(全局唯一）
 	}
 )
@@ -59,6 +60,7 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 	}
 
 	if err != nil {
+		d.statsHandler.StatsQueryFail(ctx, int64(len(keys)), err)
 		return nil, err
 	}
 
@@ -72,6 +74,7 @@ func (d DefaultMultiLevelCache[T]) BatchGet(ctx context.Context, keys []string) 
 		}
 		result[key] = t
 	}
+	d.statsHandler.StatsQueryTotal(ctx, int64(len(keys)))
 	return result, nil
 }
 
