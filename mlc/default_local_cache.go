@@ -29,6 +29,7 @@ func (d *DefaultLocalCache) BatchSet(ctx context.Context, values map[string][]by
 func (d *DefaultLocalCache) BatchGet(ctx context.Context, keys []string) (map[string][]byte, []string, error) {
 	notFoundKeys := make([]string, len(keys))
 	result := make(map[string][]byte, len(keys))
+
 	if len(keys) == 0 {
 		return result, notFoundKeys, nil
 	}
