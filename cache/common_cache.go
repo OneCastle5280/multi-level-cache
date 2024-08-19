@@ -124,21 +124,9 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler
 	}
 
 	// handle not found keys
-	if len(notFoundKeys) > 0 {
-		// loader source value
-		reLoadSourceMutex.Lock()
-		defer reLoadSourceMutex.Unlock()
-		sourceValueMap, _, hasErr, reloadErr := c.batchGetWhenErrReload(ctx, cache, notFoundKeys)
-		if reloadErr != nil {
-			// if it has reload Err; return
-			return nil, err
-		}
-		existErr = hasErr
-		// add source value to result
-		for key, val := range sourceValueMap {
-			result[key] = val
-		}
-		reLoadSourceMutex.Unlock()
+	err, existErr = c.handleNotFoundKeys(ctx, cache, notFoundKeys, result)
+	if err != nil {
+		return nil, err
 	}
 
 	if !existErr {
@@ -159,6 +147,35 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler
 
 	log.Info("[batchGet] keys: %+v, result: %+v", keys, result)
 	return result, nil
+}
+
+// handleNotFoundKeys
+//
+//	@Description: handle not found keys
+//	@receiver c
+//	@param ctx
+//	@param cache
+//	@param notFoundKeys
+//	@param result
+//	@return error		handle err
+//	@return bool		exist any err in this query
+func (c *CommonCache[T]) handleNotFoundKeys(ctx context.Context, cache Cache, notFoundKeys []string, result map[string][]byte) (error, bool) {
+	if len(notFoundKeys) > 0 {
+		// loader source value
+		reLoadSourceMutex.Lock()
+		defer reLoadSourceMutex.Unlock()
+		sourceValueMap, _, hasErr, reloadErr := c.batchGetWhenErrReload(ctx, cache, notFoundKeys)
+		if reloadErr != nil {
+			// if it has reload Err; return
+			return reloadErr, true
+		}
+		// add source value to result
+		for key, val := range sourceValueMap {
+			result[key] = val
+		}
+		return nil, hasErr
+	}
+	return nil, false
 }
 
 // reload
