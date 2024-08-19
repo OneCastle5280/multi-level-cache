@@ -4,7 +4,12 @@ import (
 	"context"
 	"mlc/cache/log"
 	"mlc/util"
+	"sync"
 	"time"
+)
+
+var (
+	reLoadSourceMutex sync.Mutex // reload source mutex
 )
 
 // CommonCache
@@ -56,6 +61,35 @@ func NewCommonCache[T any](loader Loader, expire int, config *Config) CommonCach
 	}
 }
 
+// batchGetWhenErrReload
+//
+//	@Description: batch get from cache when query err will reload from source
+//	@receiver c
+//	@param ctx
+//	@param cache
+//	@param keys
+//	@return map[string][]byte	cacheValues
+//	@return []string			notFoundKeys
+//	@return bool				exist any err in this query
+//	@return error				reload err
+func (c *CommonCache[T]) batchGetWhenErrReload(ctx context.Context, cache Cache, keys []string) (map[string][]byte, []string, bool, error) {
+	var notFoundKeys []string
+	cacheValueMap, notFoundKeys, err := cache.BatchGet(ctx, keys)
+	if err != nil {
+		log.Error("[batchGetWhenErrReload] query keys: %+v err:%+v, need reload source", keys, err)
+		sourceValueMap, loaderErr := c.loader(ctx, keys)
+		if loaderErr != nil {
+			log.Error("[batchGetWhenErrReload] reload keys: %+v err:%+v", keys, err)
+			return nil, notFoundKeys, true, err
+		}
+
+		// return source value
+		log.Info("[batchGetWhenErrReload] keys: %+v, sourceValueMap: %+v", keys, sourceValueMap)
+		return sourceValueMap, notFoundKeys, true, nil
+	}
+	return cacheValueMap, notFoundKeys, false, nil
+}
+
 // batchGet
 //
 //	@Description: 公共逻辑：批量获取缓存数据
@@ -77,21 +111,7 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler
 	var breakDownKeys []string
 
 	// batch query from cache
-	cacheValueMap, notFoundKeys, err := cache.BatchGet(ctx, keys)
-	if err != nil {
-		existErr = true
-		log.Error("[batchGet] query keys: %+v err:%+v, need reload source", keys, err)
-		sourceValueMap, loaderErr := c.loader(ctx, keys)
-		if loaderErr != nil {
-			log.Error("[batchGet] reload keys: %+v err:%+v", keys, err)
-			return nil, err
-		}
-
-		// return source value
-		log.Info("[batchGet] keys: %+v, sourceValueMap: %+v", keys, sourceValueMap)
-		return sourceValueMap, nil
-	}
-
+	cacheValueMap, notFoundKeys, existErr, err := c.batchGetWhenErrReload(ctx, cache, keys)
 	// add cache value to result
 	for key, val := range cacheValueMap {
 		if c.breakDownHandler.IsBreakDownKeys(nil, val) {
@@ -106,16 +126,19 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler
 	// handle not found keys
 	if len(notFoundKeys) > 0 {
 		// loader source value
-		sourceValueMap, reloadErr := c.reload(ctx, cache, notFoundKeys)
+		reLoadSourceMutex.Lock()
+		defer reLoadSourceMutex.Unlock()
+		sourceValueMap, _, hasErr, reloadErr := c.batchGetWhenErrReload(ctx, cache, notFoundKeys)
 		if reloadErr != nil {
-			log.Error("[batchGet] reload keys: %+v err:%+v", keys, err)
+			// if it has reload Err; return
 			return nil, err
 		}
-
+		existErr = hasErr
 		// add source value to result
 		for key, val := range sourceValueMap {
 			result[key] = val
 		}
+		reLoadSourceMutex.Unlock()
 	}
 
 	if !existErr {
