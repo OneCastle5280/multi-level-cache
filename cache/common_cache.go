@@ -8,9 +8,7 @@ import (
 	"time"
 )
 
-var (
-	reLoadSourceMutex sync.Mutex // reload source mutex
-)
+var ()
 
 // CommonCache
 // @Description: 本地、远端缓存公共处理逻辑
@@ -38,6 +36,12 @@ type CommonCache[T any] struct {
 	//  @Description: 缓存击穿处理器
 	//
 	breakDownHandler CacheBreakDownHandler
+
+	//
+	//  reLoadSourceMutex
+	//  @Description: reload lock
+	//
+	reLoadSourceMutex sync.Mutex
 }
 
 // NewCommonCache
@@ -162,8 +166,8 @@ func (c *CommonCache[T]) batchGet(ctx context.Context, cache Cache, statsHandler
 func (c *CommonCache[T]) handleNotFoundKeys(ctx context.Context, cache Cache, notFoundKeys []string, result map[string][]byte) (error, bool) {
 	if len(notFoundKeys) > 0 {
 		// loader source value
-		reLoadSourceMutex.Lock()
-		defer reLoadSourceMutex.Unlock()
+		c.reLoadSourceMutex.Lock()
+		defer c.reLoadSourceMutex.Unlock()
 		sourceValueMap, _, hasErr, reloadErr := c.batchGetWhenErrReload(ctx, cache, notFoundKeys)
 		if reloadErr != nil {
 			// if it has reload Err; return
