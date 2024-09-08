@@ -58,10 +58,11 @@ func NewCommonCache[T any](loader Loader, expire int, config *Config) CommonCach
 	}
 
 	return CommonCache[T]{
-		expire:           time.Duration(expire),
-		loader:           loader,
-		breakDownHandler: breakDownHandler,
-		statsHandler:     NewStatsHandler(config.statsDisable, config.statsHandler),
+		expire:            time.Duration(expire),
+		loader:            loader,
+		breakDownHandler:  breakDownHandler,
+		statsHandler:      NewStatsHandler(config.statsDisable, config.statsHandler),
+		reLoadSourceMutex: sync.Mutex{},
 	}
 }
 
