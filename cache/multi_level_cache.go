@@ -18,4 +18,7 @@ type (
 
 	// Loader 回源 func
 	Loader func(ctx context.Context, keys []string) (map[string][]byte, error)
+
+	// BatchDeleteLocalCache 批量删除本地缓存
+	BatchDeleteLocalCache func(ctx context.Context, keys []string) error
 )

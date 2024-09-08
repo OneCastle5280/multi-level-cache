@@ -13,13 +13,14 @@ const (
 type (
 	// DefaultMultiLevelCache 多级缓存默认实现类
 	DefaultMultiLevelCache[T any] struct {
-		config        *Config         // 缓存配置
-		remoteCache   *RemoteCache[T] // remote 缓存
-		localCache    *LocalCache[T]  // local 缓存
-		getFromDb     Loader          // 回源 db loader
-		serialization Serialization   // 序列化组件
-		statsHandler  *StatsHandler   // 统计组件
-		unionKey      string          // 缓存唯一标识(全局唯一）
+		config                 *Config               // 缓存配置
+		remoteCache            *RemoteCache[T]       // remote 缓存
+		localCache             *LocalCache[T]        // local 缓存
+		getFromDb              Loader                // 回源 db loader
+		serialization          Serialization         // 序列化组件
+		statsHandler           *StatsHandler         // 统计组件
+		customDeleteLocalCache BatchDeleteLocalCache // 自定义清理缓存本地缓存func
+		unionKey               string                // 缓存唯一标识(全局唯一）
 	}
 )
 
@@ -102,13 +103,21 @@ func (d DefaultMultiLevelCache[T]) Del(ctx context.Context, key string) error {
 //	@return error
 func (d DefaultMultiLevelCache[T]) BatchDel(ctx context.Context, keys ...string) error {
 	mode := d.config.GetMode()
-	if mode == REMOTE {
+	if mode == REMOTE || mode == MULTILEVEL {
 		err := d.remoteCache.BatchDel(ctx, keys)
 		if err != nil {
 			log.Error("[BatchDel] remote keys: %+v, err: %v", keys, err)
 			return err
 		}
 		return nil
+	}
+
+	// exec custom delete Local cache func
+	if d.customDeleteLocalCache != nil {
+		err := d.customDeleteLocalCache(ctx, keys)
+		if err != nil {
+			return err
+		}
 	}
 
 	// delete local cache
