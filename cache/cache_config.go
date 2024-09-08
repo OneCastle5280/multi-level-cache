@@ -5,17 +5,17 @@ type (
 	// Config
 	// @Description: 缓存自定义配置
 	Config struct {
-		localExpire            int                   // local  缓存过期时间, 单位：秒
-		localLimitSize         int                   // local  缓存大小，默认为 512 KB
-		remoteExpire           int                   // remote 缓存过期时间, 单位：秒
-		statsDisable           bool                  // 日志统计开关
-		statsHandler           StatisticsHandler     // 自定义命中率统计
-		breakDownHandler       CacheBreakDownHandler // 自定义缓存穿透处理器
-		serialization          Serialization         // 自定义序列化方式
-		remoteCache            Cache                 // 自定义远程缓存
-		localCache             Cache                 // 自定义本地缓存
-		mode                   Mode                  // 缓存模式
-		customDeleteLocalCache BatchDeleteLocalCache // 自定义本地缓存清理
+		localExpire           int                       // local  缓存过期时间, 单位：秒
+		localLimitSize        int                       // local  缓存大小，默认为 512 KB
+		remoteExpire          int                       // remote 缓存过期时间, 单位：秒
+		statsDisable          bool                      // 日志统计开关
+		statsHandler          StatisticsHandler         // 自定义命中率统计
+		breakDownHandler      CacheBreakDownHandler     // 自定义缓存穿透处理器
+		serialization         Serialization             // 自定义序列化方式
+		remoteCache           Cache                     // 自定义远程缓存
+		localCache            Cache                     // 自定义本地缓存
+		mode                  Mode                      // 缓存模式
+		batchDeleteLocalCache BatchDeleteLocalCacheFunc // 自定义本地缓存清理
 	}
 
 	ConfigOption func(option *Config)
@@ -94,9 +94,9 @@ func (c *Config) GetSerialization() Serialization {
 	return c.serialization
 }
 
-// GetCustomDeleteLocalCache 获取自定义缓存清理func
-func (c *Config) GetCustomDeleteLocalCache() BatchDeleteLocalCache {
-	return c.customDeleteLocalCache
+// GetBatchDeleteLocalCache 获取自定义缓存清理func
+func (c *Config) GetBatchDeleteLocalCache() BatchDeleteLocalCacheFunc {
+	return c.batchDeleteLocalCache
 }
 
 func WithLocalExpire(expire int) ConfigOption {
@@ -159,8 +159,8 @@ func WithMode(mode Mode) ConfigOption {
 	}
 }
 
-func WithCustomDeleteLocalCache(deleteFunc BatchDeleteLocalCache) ConfigOption {
+func WithBatchDeleteLocalCache(deleteFunc BatchDeleteLocalCacheFunc) ConfigOption {
 	return func(option *Config) {
-		option.customDeleteLocalCache = deleteFunc
+		option.batchDeleteLocalCache = deleteFunc
 	}
 }

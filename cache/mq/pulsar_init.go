@@ -67,12 +67,12 @@ func InitConsumer(topicName string, subscriptionName string) {
 	consumerMap.Store(topicName, consumer)
 }
 
-// GetProvider
+// getProvider
 //
-//	@Description:
+//	@Description: 获取 pulsar name
 //	@param topicName
 //	@return pulsar.Producer
-func GetProvider(topicName string) pulsar.Producer {
+func getProvider(topicName string) pulsar.Producer {
 	if producer, ok := providerMap.Load(topicName); ok {
 		if p, ok := producer.(pulsar.Producer); ok {
 			return p

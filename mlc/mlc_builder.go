@@ -3,6 +3,7 @@ package mlc
 import (
 	"context"
 	"mlc/cache"
+	"mlc/cache/mq"
 	"sync"
 )
 
@@ -27,6 +28,7 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 	if _, ok := mlcMap[name]; ok {
 		panic(name + "had existed, please check!")
 	}
+	mlcMap[name] = struct{}{}
 
 	// 缓存配置
 	config := cache.NewCacheConfig(opt...)
@@ -59,14 +61,44 @@ func NewDefaultMultiLevelCache[T any](getFromDb cache.Loader, name string, opt .
 
 	statsHandler := cache.NewStatsHandler(config.GetStatsDisable(), config.GetStatsHandler())
 
+	var batchDeleteLocalCacheFunc cache.BatchDeleteLocalCacheFunc
+	if config.GetBatchDeleteLocalCache() == nil && config.GetMode() == cache.MULTILEVEL {
+		batchDeleteLocalCacheFunc = getDefaultBatchDeleteLocalCache(name)
+	}
+
 	// 创建缓存实例
 	return &DefaultMultiLevelCache[T]{
-		config:        config,
-		localCache:    localCache,
-		remoteCache:   remoteCache,
-		getFromDb:     getFromDb,
-		serialization: serialization,
-		statsHandler:  statsHandler,
-		unionKey:      name,
+		config:                config,
+		localCache:            localCache,
+		remoteCache:           remoteCache,
+		getFromDb:             getFromDb,
+		serialization:         serialization,
+		statsHandler:          statsHandler,
+		batchDeleteLocalCache: batchDeleteLocalCacheFunc,
+		unionKey:              name,
+	}
+}
+
+// getDefaultBatchDeleteLocalCache
+//
+//	@Description:  获取默认批量删除本地缓存
+//	@param name
+//	@return func(ctx context.Context, keys []string) error
+func getDefaultBatchDeleteLocalCache(name string) cache.BatchDeleteLocalCacheFunc {
+	return func(ctx context.Context, keys []string) error {
+		if len(keys) == 0 {
+			return nil
+		}
+
+		for _, key := range keys {
+			err := mq.SendInvalidLocalCacheEvent(ctx, mq.InvalidLocalCacheEvent{
+				CacheUnionKey: name,
+				CacheKey:      key,
+			})
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }

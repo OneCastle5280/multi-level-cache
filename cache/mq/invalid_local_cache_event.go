@@ -1,4 +1,4 @@
-package event
+package mq
 
 type InvalidLocalCacheEvent struct {
 	// cache union key
