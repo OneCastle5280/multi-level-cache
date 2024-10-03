@@ -1,6 +1,9 @@
 package cache
 
-import "context"
+import (
+	"context"
+	_default "mlc/cache/default"
+)
 
 type (
 	LocalCache[T any] struct {
@@ -24,9 +27,14 @@ type (
 //	@param config
 //	@return *cache.LocalCache[T]
 func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
+	cache := config.GetLocalCache()
+	if cache == nil {
+		// default local cache
+		cache = _default.NewDefaultLocalCache(int32(config.GetLocalLimitSize()))
+	}
 	return &LocalCache[T]{
-		cache:       config.getLocalCache(),
-		CommonCache: NewCommonCache[T](loader, config.GetLocalExpire(), config),
+		cache:       cache,
+		CommonCache: NewCommonCache[T](loader, config.getLocalExpire(), config),
 	}
 }
 
@@ -39,7 +47,7 @@ func NewLocalCache[T any](loader Loader, config *Config) *LocalCache[T] {
 //	@return map[string][]byte
 //	@return error
 func (l *LocalCache[T]) BatchGet(ctx context.Context, keys []string) (map[string][]byte, error) {
-	return l.batchGet(ctx, l.cache, l.statsHandler, RemoteType, keys)
+	return l.batchGet(ctx, l.cache, l.statsHandler, LocalType, keys)
 }
 
 // BatchDel

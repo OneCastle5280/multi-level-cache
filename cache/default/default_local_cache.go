@@ -1,4 +1,4 @@
-package mlc
+package _default
 
 import (
 	"context"
@@ -8,7 +8,17 @@ import (
 )
 
 type DefaultLocalCache struct {
-	localCache freecache.Cache // default localCache
+	localCache *freecache.Cache // default localCache
+}
+
+// NewDefaultLocalCache
+//
+//	@Description: 创建 default local cache
+//	@param localCacheSize
+//	@return *DefaultLocalCache
+func NewDefaultLocalCache(localCacheSize int32) *DefaultLocalCache {
+	return &DefaultLocalCache{
+		localCache: freecache.NewCache(int(localCacheSize))}
 }
 
 func (d *DefaultLocalCache) BatchSet(ctx context.Context, values map[string][]byte, expire time.Duration) error {
@@ -27,7 +37,7 @@ func (d *DefaultLocalCache) BatchSet(ctx context.Context, values map[string][]by
 }
 
 func (d *DefaultLocalCache) BatchGet(ctx context.Context, keys []string) (map[string][]byte, []string, error) {
-	notFoundKeys := make([]string, len(keys))
+	var notFoundKeys []string
 	result := make(map[string][]byte, len(keys))
 
 	if len(keys) == 0 {

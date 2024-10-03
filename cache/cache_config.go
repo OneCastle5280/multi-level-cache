@@ -40,8 +40,8 @@ func NewCacheConfig(options ...ConfigOption) *Config {
 	return config
 }
 
-// GetLocalExpire 获取 local 缓存超时时间
-func (c *Config) GetLocalExpire() int {
+// getLocalExpire 获取 local 缓存超时时间
+func (c *Config) getLocalExpire() int {
 	if c.localExpire <= 0 {
 		return defaultLocalExpire
 	}
@@ -84,8 +84,8 @@ func (c *Config) getRemoteCache() Cache {
 	return c.remoteCache
 }
 
-// getLocalCache 获取自定义本地缓存
-func (c *Config) getLocalCache() Cache {
+// GetLocalCache 获取自定义本地缓存
+func (c *Config) GetLocalCache() Cache {
 	return c.localCache
 }
 

@@ -1,4 +1,4 @@
-package mlc
+package _default
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func (d *DefaultRemoteCache) BatchSet(ctx context.Context, values map[string][]b
 }
 
 func (d *DefaultRemoteCache) BatchGet(ctx context.Context, keys []string) (map[string][]byte, []string, error) {
-	notFoundKeys := make([]string, len(keys))
+	var notFoundKeys []string
 	result := make(map[string][]byte, len(keys))
 
 	if len(keys) == 0 {

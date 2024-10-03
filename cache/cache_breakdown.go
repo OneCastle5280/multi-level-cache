@@ -5,8 +5,10 @@ import (
 	"context"
 )
 
+const DefaultCacheBreakDownValue = "default break down"
+
 // 默认缓存击穿节点
-var defaultCacheBreakdownNode = []byte("default break down")
+var defaultCacheBreakdownNode = []byte(DefaultCacheBreakDownValue)
 
 // CacheBreakDownHandler
 //

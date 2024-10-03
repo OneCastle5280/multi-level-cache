@@ -82,7 +82,7 @@ func (c *CommonCache[T]) batchGetWhenErrReload(ctx context.Context, cache Cache,
 	cacheValueMap, notFoundKeys, err := cache.BatchGet(ctx, keys)
 	if err != nil {
 		log.Error("[batchGetWhenErrReload] query keys: %+v err:%+v, need reload source", keys, err)
-		sourceValueMap, loaderErr := c.loader(ctx, keys)
+		sourceValueMap, loaderErr := c.reload(ctx, cache, keys)
 		if loaderErr != nil {
 			log.Error("[batchGetWhenErrReload] reload keys: %+v err:%+v", keys, err)
 			return nil, notFoundKeys, true, err
@@ -169,7 +169,8 @@ func (c *CommonCache[T]) handleNotFoundKeys(ctx context.Context, cache Cache, no
 		// loader source value
 		c.reLoadSourceMutex.Lock()
 		defer c.reLoadSourceMutex.Unlock()
-		sourceValueMap, _, hasErr, reloadErr := c.batchGetWhenErrReload(ctx, cache, notFoundKeys)
+		// reload source
+		sourceValueMap, reloadErr := c.reload(ctx, cache, notFoundKeys)
 		if reloadErr != nil {
 			// if it has reload Err; return
 			return reloadErr, true
@@ -178,7 +179,7 @@ func (c *CommonCache[T]) handleNotFoundKeys(ctx context.Context, cache Cache, no
 		for key, val := range sourceValueMap {
 			result[key] = val
 		}
-		return nil, hasErr
+		return nil, false
 	}
 	return nil, false
 }
@@ -257,7 +258,6 @@ func (c *CommonCache[T]) handleBreakDownKeys(ctx context.Context, cache Cache, q
 		return
 	}
 	values := c.breakDownHandler.HandleBreakDownKeys(ctx, needHandleBreakDownKeys)
-	log.Info("[handleBreakDownKeys] values: %+v", values)
 	err := cache.BatchSet(ctx, values, c.expire)
 	if err != nil {
 		log.Error("[handleBreakDownKeys] handle break down keys: %+v, err %+v", needHandleBreakDownKeys, err)
